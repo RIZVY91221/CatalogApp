@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:orientation="vertical">
 
     <EditText
         android:id="@+id/inputNumEdit"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="48dp"
         android:autofillHints=""
+        android:layout_margin="20dp"
         android:ems="10"
         android:hint="@string/enter_number_eg_12_13_1"
-        android:inputType="number|text"
+        android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
+        android:layout_gravity="center_horizontal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -25,21 +29,23 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:onClick="SortButton"
+        android:layout_gravity="center_horizontal"
         android:text="@string/sort"
+        android:textColor="#FFF"
+        android:textSize="20dp"
+        android:layout_margin="20dp"
+        style="@style/Widget.MaterialComponents.Button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.526"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/inputNumEdit" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_list"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
-        android:text="@string/textview"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.525"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sButton" />
+        android:padding="10dp"
+        android:layout_margin="20dp"
+        tools:listitem="@layout/model_sorted_number" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

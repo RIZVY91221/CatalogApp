@@ -1,4 +1,6 @@
-import 'package:brainhouse_i/model/Ticket.dart';
+
+
+import 'package:brainhouse_i/model/DemoTicket.dart';
 
 class TicketResponse{
   TicketResponse._();

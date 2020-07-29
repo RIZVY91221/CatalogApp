@@ -1,8 +1,7 @@
 import 'package:attendenceapp/Activity/LoginPage.dart';
+import 'package:attendenceapp/Activity/attendance_user_tabbar.dart';
 import 'package:attendenceapp/AppTheme/Apptheme.dart';
-import 'package:attendenceapp/page/attendenceScreen.dart';
 import 'package:attendenceapp/page/taskScreen.dart';
-import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +166,7 @@ class _DashboardPageState extends State<DashboardPage> {
                context,
                new MaterialPageRoute(
                    builder: (BuildContext context) =>
-                   AttendenceScreen(fullName: fullName,username: username,uid: uid,postName: postName,)));
+                   AttendanceTab(username: username,userPost: postName,)));
          }else if(name=='TASK'){
            Navigator.push(
                context,
@@ -175,6 +174,7 @@ class _DashboardPageState extends State<DashboardPage> {
                    builder: (context) =>
                        TaskScreen()));
          }else if(name=='PROFILE'){
+
            Fluttertoast.showToast(
                msg: "Profile Not created yet",
                toastLength: Toast.LENGTH_LONG,

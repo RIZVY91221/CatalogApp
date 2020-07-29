@@ -1,75 +1,53 @@
 
+
 import 'package:brainhouse_client/activity/client_dashboard_page.dart';
 import 'package:brainhouse_client/activity/client_login_page.dart';
 import 'package:brainhouse_client/activity/client_profile_Page.dart';
 import 'package:brainhouse_client/activity/client_ticket_page.dart';
 import 'package:brainhouse_client/model/userInfo.dart';
+import 'package:brainhouse_client/provider/ticket_DB_Provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
 class NavDrawer extends StatefulWidget {
+  final String fName,lName,avatar;
+
+  NavDrawer({this.fName, this.lName,this.avatar});
+
   @override
-  _NavDrawerState createState() => _NavDrawerState();
+  _NavDrawerState createState() => _NavDrawerState(fName: fName,lName: lName,avatar: avatar);
 }
 
 class _NavDrawerState extends State<NavDrawer> {
+  final String fName,lName,avatar;
+
+  _NavDrawerState({this.fName, this.lName,this.avatar});
+
   SharedPreferences sharedPreferences;
   String token;
-  var responseBody;
-  final String baseUrl = 'https://brainhouse.net/apiv2/user';
 
   Future<String> getToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
-  Future<userInfo> getHttp() async {
-    getToken().then((value) {
-      token = value;
-    });
-    var dio = await Dio();
-    dio.options.baseUrl = baseUrl;
-    dio.options.headers = {
-      "Authorization": "Bearer $token"
-    }; //add your type of authentication
-    // dio.options.contentType = ContentType.parse("application/json");
-    Response response = await dio.get("/info");
-    responseBody = response.data;
-    return userInfo.fromJson(responseBody['data']['data']['profile']);
-  }
-
-  Future<imageUser> getHttpImage() async {
-    getToken().then((value) {
-      token = value;
-    });
-    var dio = await Dio();
-    dio.options.baseUrl = baseUrl;
-    dio.options.headers = {
-      "Authorization": "Bearer $token"
-    }; //add your type of authentication
-    // dio.options.contentType = ContentType.parse("application/json");
-    Response response = await dio.get("/info");
-    responseBody = response.data;
-    return imageUser.fromJson(responseBody['data']['data']);
-  }
 
   checkLoginStatus() async {
-    sharedPreferences = await SharedPreferences.getInstance();
+     sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.getString("token") == null) {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (BuildContext context) => NewLoginPage()),
           (Route<dynamic> route) => false);
     }
+    return sharedPreferences.getString("token");
   }
 
   @override
   void initState() {
     // TODO: implement initState
-    getHttp();
-    getHttpImage();
-    checkLoginStatus();
+    //checkLoginStatus();
     super.initState();
   }
 
@@ -111,14 +89,21 @@ class _NavDrawerState extends State<NavDrawer> {
               icon: Icons.power_settings_new,
               text: 'Logout',
               onTap: () {
-                sharedPreferences.clear();
-                sharedPreferences.commit();
-                Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => NewLoginPage()),
-                    (Route<dynamic> route) => false);
+                checkLoginStatus().then((_){
+                  DBProvider.db.deleteAllCurrentTicket();
+                  DBProvider.db.deleteAllNewTicket();
+                  DBProvider.db.deleteCurrentTicket();
+                  DBProvider.db.deleteNewTicket();
+                  sharedPreferences.clear();
+                  sharedPreferences.commit();
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => NewLoginPage()),
+                          (Route<dynamic> route) => false);
+                });
               }),
           SizedBox(
+
             height: 220,
           ),
           ListTile(
@@ -162,36 +147,40 @@ class _NavDrawerState extends State<NavDrawer> {
   }
 
   Widget nameText() {
-    Widget name = new Positioned(
-      bottom: 12.0,
-      left: 16.0,
-      child: FutureBuilder<userInfo>(
+      Widget names = new Positioned(
+          bottom: 12.0,
+          left: 16.0,
+          child:Text(
+                fName.toString()+lName.toString(),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w500)) /*FutureBuilder<userInfo>(
         future: getHttp(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return Text(
-                snapshot.data.firstname.toString() +
-                    " " +
-                    snapshot.data.lastname.toString(),
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w500));
+
+            return
           } else if (snapshot.hasError) {
             return new Text("${snapshot.error}");
           }
           return new CircularProgressIndicator();
         },
-      ),
-    );
-    return name;
+      ),*/
+      );
+      return names;
+
   }
 
   Widget image() {
     Widget image = new Positioned(
       top: 20.0,
       left: 16.0,
-      child: FutureBuilder<imageUser>(
+      child: CircleAvatar(
+        radius: 50.0,
+        backgroundColor: Colors.white,
+        backgroundImage: NetworkImage(avatar.toString()),
+      )/*FutureBuilder<imageUser>(
         future: getHttpImage(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -205,7 +194,7 @@ class _NavDrawerState extends State<NavDrawer> {
           }
           return new CircularProgressIndicator();
         },
-      ),
+      ),*/
     );
     return image;
   }

@@ -15,10 +15,10 @@ class _ExpertMyProfileState extends State<ExpertMyProfile>with SingleTickerProvi
 
   //AnimationController animationController;
   final List<Tab> tabs = <Tab>[
-    new Tab(text: "Profile"),
-    new Tab(text: "Settings"),
-    new Tab(text: "Payments"),
-    new Tab(text: "Review")
+    new Tab(text: "PROFILE"),
+    new Tab(text: "SETTINGS"),
+    new Tab(text: "PAYMENT"),
+    new Tab(text: "REVIEW")
   ];
 
   TabController _tabController;
@@ -38,30 +38,49 @@ class _ExpertMyProfileState extends State<ExpertMyProfile>with SingleTickerProvi
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:AppTheme.nearlyWhite ,
-      appBar: new AppBar(
+      appBar:PreferredSize(
+        preferredSize: Size.fromHeight(150.0),
+       child:new AppBar(
         backgroundColor: AppTheme.nearlyWhite,
-        title: Text('My Profile',style: TextStyle(color:AppTheme.nearlyBlack,)),
+        elevation: 0,
+        title: Padding(
+            padding: EdgeInsets.only(top: 10),
+            child:Container(
+              //width: MediaQuery.of(context).size.width*8/10,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  //color: AppTheme.bh
+                ),
+                child:Padding(
+                    padding: EdgeInsets.all(5),
+                    child:Text("MY PROFILE",style: TextStyle(color: Colors.black,fontSize: 18.0),)))),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black,
-          ),
-          onPressed: () => Navigator.pop(context, false),
-        ),
+        leading: Padding(
+            padding: EdgeInsets.only(top: 10),
+            child:IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.black,
+              ),
+              onPressed: () => Navigator.pop(context, false),
+            )),
         bottom: new TabBar(
           isScrollable: true,
+          labelPadding: EdgeInsets.all(15),
           unselectedLabelColor: Colors.black,
+          labelStyle: TextStyle(fontSize: 15,),
+          unselectedLabelStyle: TextStyle(fontSize: 15),
           labelColor: Colors.white,
           indicatorSize: TabBarIndicatorSize.tab,
           indicator: new BubbleTabIndicator(
-            indicatorHeight: 25.0,
-            indicatorColor:  Color(0xff7092be),
+            indicatorHeight: 32.0,
+            indicatorColor: AppTheme.bhb,
             tabBarIndicatorSize: TabBarIndicatorSize.tab,
           ),
           tabs: tabs,
           controller: _tabController,
         ),
+      )
       ),
       body: TabBarView(
         controller: _tabController,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 const String _name = "Rizvy Ahmed";
 
-class ChatMessage extends StatelessWidget {
+/*class ChatMessage extends StatelessWidget {
   final String text ;
   //for opotional params we use curly braces
   ChatMessage({this.text});
@@ -33,4 +33,4 @@ class ChatMessage extends StatelessWidget {
       ),
     );
   }
-}
+}*/

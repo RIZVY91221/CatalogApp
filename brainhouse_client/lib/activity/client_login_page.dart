@@ -4,10 +4,10 @@ import 'package:brainhouse_client/activity/Sign_up_page.dart';
 import 'package:brainhouse_client/activity/app_theme/app_theme.dart';
 import 'package:brainhouse_client/activity/client_dashboard_page.dart';
 import 'package:brainhouse_client/activity/widget/constrant_login_widget.dart';
+import 'package:brainhouse_client/provider/Ticket_Api_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 class NewLoginPage extends StatefulWidget {
@@ -41,8 +41,10 @@ class _NewLoginPageState extends State<NewLoginPage>{
         });
         try {
           String token=jsonResponse["data"]['data']['token'];
+          String userId=jsonResponse["data"]['data']['userid'];
           int roleId=jsonResponse["data"]['data']['roleid'];
           sharedPreferences.setString("token", token);
+          sharedPreferences.setString("userId", userId);
           sharedPreferences.setInt('roleId', roleId);
           Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
               builder: (BuildContext context) => ClientDashboard()), (
@@ -60,6 +62,7 @@ class _NewLoginPageState extends State<NewLoginPage>{
       print(response.body);
     }
   }
+
   readLogin()async{
     final prefs=await SharedPreferences.getInstance();
     final value=prefs.getString("token")??0;
@@ -256,17 +259,21 @@ class _NewLoginPageState extends State<NewLoginPage>{
     );
   }
 
+
   Widget _buildLoginBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: RaisedButton(
         elevation: 5.0,
-        onPressed:  emailController.text == "" || passwordController.text == "" ? null : () {
+        onPressed:  emailController.text == "" || passwordController.text == "" ||_rememberMe==false? null : () async{
           setState(() {
             _isLoading = true;
           });
           signIn(emailController.text, passwordController.text);
+          //_signInAnonymously();
+          //getUserDoc();
+
         },
         padding: EdgeInsets.all(15.0),
         shape: RoundedRectangleBorder(
@@ -314,4 +321,6 @@ class _NewLoginPageState extends State<NewLoginPage>{
       ),
     );
   }
+
+
 }

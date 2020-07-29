@@ -2,7 +2,6 @@
 
 import 'package:brainhouse_client/activity/app_theme/app_theme.dart';
 import 'package:brainhouse_client/activity/client_dashboard_page.dart';
-import 'package:brainhouse_client/activity/ui/tciket_details_info.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,23 +9,16 @@ import 'package:flutter_chips_input/flutter_chips_input.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class PostTicket extends StatefulWidget {
-  final String id,title,cost,tags,description;
-
-  PostTicket({this.id, this.title, this.cost, this.tags, this.description});
 
   @override
-  _PostTicketState createState() => _PostTicketState(id:id,title: title,cost: cost,description:description,tags:tags);
+  _PostTicketState createState() => _PostTicketState();
 }
 
 class _PostTicketState extends State<PostTicket> {
 
-  final String id,title,cost,tags,description;
-
-  _PostTicketState({this.id,this.title, this.cost, this.description, this.tags});
 
   SharedPreferences sharedPreferences;
   final String baseUrl="https://brainhouse.net/apiv2";
-  final String editTicketUrl="https://brainhouse.net/apiv2/ticket/detail";
   var responseBody;
   bool isLoading=false;
   TextEditingController titleText=new TextEditingController();
@@ -34,33 +26,34 @@ class _PostTicketState extends State<PostTicket> {
   TextEditingController costText=new TextEditingController();
 
   var tag ;
+  String skillTag;
   String _value = "Select Service";
   String token;
-  String _workinType = "Hourly(remote)";
+  String _workinType = "Remote";
   int serviceId;
   List<String> _serviceCategory =
   ['Select Service','AWS','Google Cloud','Java','Azure'];
 
   List<String>workingType=[
-    'Hourly(remote)','Hourly onSite','Contract'
+    'Remote','onSite','Contract'
   ];
 
   Future<String> getToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
-  Future<dynamic>postTicketUser(int Service_id,String ticketTitle,String ticketDes,String ticketCost,String contract)async{
+  Future<dynamic>postTicketUser(int Service_id,String ticketTags,String ticketTitle,String ticketDes,int status,String modality)async{
     getToken().then((value) {
       token = value;
     });
 
     Map ticket= {
       "serviceid": Service_id,
-      "tags":"Java",
+      "tags":ticketTags,
       "title":ticketTitle,
       "description":ticketDes,
-      "cost":ticketCost,
-      "hourly_contract":contract
+      "status":status,
+      "work_modality":modality
 
     };
     var dio = await Dio();
@@ -101,82 +94,10 @@ class _PostTicketState extends State<PostTicket> {
     }
   }
 
-  Future<dynamic>EditTicket(int Service_id,String ticketTitle,String ticketDes,String ticketCost,String contract)async{
-    getToken().then((value) {
-      token = value;
-    });
 
-    Map ticket= {
-      "serviceid": Service_id,
-      "tags":"Java",
-      "title":ticketTitle,
-      "description":ticketDes,
-      "cost":ticketCost,
-      "hourly_contract":contract
-
-    };
-    var dio = await Dio();
-    dio.options.baseUrl = editTicketUrl;
-    dio.options.headers = {
-      "Authorization": "Bearer $token"
-    }; //add your type of authentication
-    // dio.options.contentType = ContentType.parse("application/json");
-    if(id!=null){
-      try{
-        Response response = await dio.put("/$id",data: ticket);
-        print(response);
-        responseBody = response.data;
-        if(responseBody!=null){
-
-          setState(() {
-            isLoading=false;
-          });
-          try{
-            Fluttertoast.showToast(
-                msg: "Ticket Edit Successfully",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIos: 1,
-                backgroundColor: AppTheme.bhb,
-                textColor: Colors.white,
-                fontSize: 16.0
-            );
-            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-                builder: (BuildContext context) => TicketInfoDetails(id:id)), (
-                Route<dynamic> route) => false);
-          }catch(e){
-            e.toString();
-          }
-        }
-        else{
-          setState(() {
-            isLoading=false;
-          });
-        }
-      }catch(e){
-        e.toString();
-      }
-
-    }else{
-      print("No id get");
-    }
-
-  }
-   oldData(){
-    if(id!=null){
-      titleText.value=TextEditingValue(text: title);
-      desText.value=TextEditingValue(text: description);
-      costText.value=TextEditingValue(text: cost);
-    }
-    else{
-      return;
-    }
-
-  }
 
   @override
   void initState() {
-    oldData();
     // TODO: implement initState
     super.initState();
   }
@@ -191,8 +112,7 @@ class _PostTicketState extends State<PostTicket> {
       SkillName('Flutter'),
     ];
     return Scaffold(
-      backgroundColor: AppTheme.white,
-      body: Container(
+      body: isLoading?Center(child: CircularProgressIndicator(),):Container(
         child: ListView(
           children: <Widget>[
             Container(
@@ -203,102 +123,89 @@ class _PostTicketState extends State<PostTicket> {
                   SizedBox(height: 15.0,),
                   Center(child: Text("Post a Ticket",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 25.0,color: AppTheme.bhb),),),
                   Padding(padding: EdgeInsets.only(left: 22,top: 20),
-                  child: Text("Ticket Title",style: TextStyle(fontSize: 20),),),
+                    child: Text("Ticket Title",style: TextStyle(fontSize: 15,color: AppTheme.bhb),),),
                   Padding(padding: EdgeInsets.only(left: 10,top: 5),
-                  child:Center(child:new Container(
-                    width: MediaQuery.of(context).size.width*9/10,
-                    decoration: new BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      border: new Border.all(
-                        color: AppTheme.bh,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: new TextField(
-                      controller:titleText,
-                      style: TextStyle(fontSize: 18),
-                      textAlign: TextAlign.left,
-                      decoration: new InputDecoration(
-                        hintText: 'e.g Seniour product Designer',
-                        border: InputBorder.none,
-
-                      ),
-                    ),
-                  ) ,) ),
-                  Padding(padding: EdgeInsets.only(left: 22,top: 20),
-                    child: Text("Description",style: TextStyle(fontSize: 20),),),
-                  Padding(padding: EdgeInsets.only(left: 10,top: 5),
-                      child:Center(
-                        child:new Container(
+                      child:Center(child:new Container(
                         width: MediaQuery.of(context).size.width*9/10,
-                        height: MediaQuery.of(context).size.width/3,
-                        decoration: new BoxDecoration(
-                          shape: BoxShape.rectangle,
-                          border: new Border.all(
-                            color: AppTheme.bh,
-                            width: 1.5,
-                          ),
-                        ),
                         child: new TextField(
-                          controller: desText,
+                          controller:titleText,
+                          style: TextStyle(fontSize: 18),
                           textAlign: TextAlign.left,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 8,
-                          maxLength: 4700,
                           decoration: new InputDecoration(
-                            hintText: 'Enter your description here',
-                            border: InputBorder.none,
+                            hintText: 'e.g Seniour product Designer',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(5),
+                                borderSide: BorderSide(width: 1,style: BorderStyle.solid,color: AppTheme.bh)
+                            ),
 
                           ),
                         ),
                       ) ,) ),
                   Padding(padding: EdgeInsets.only(left: 22,top: 20),
-                    child: Text("Service Category",style: TextStyle(fontSize: 20),),),
+                    child: Text("Description",style: TextStyle(fontSize: 15,color:AppTheme.bhb),),),
                   Padding(padding: EdgeInsets.only(left: 10,top: 5),
                       child:Center(
                         child:new Container(
-                        width: MediaQuery.of(context).size.width*9/10,
-                        decoration: new BoxDecoration(
-                          shape: BoxShape.rectangle,
-                          border: new Border.all(
-                            color: AppTheme.bh,
-                            width: 1.5,
+                          width: MediaQuery.of(context).size.width*9/10,
+                          height: MediaQuery.of(context).size.width/2,
+                          child: new TextField(
+                            controller: desText,
+                            textAlign: TextAlign.left,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: 8,
+                            maxLength: 4700,
+                            decoration: new InputDecoration(
+                              hintText: 'Enter your description here',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                  borderSide: BorderSide(width: 1,style: BorderStyle.solid,color: AppTheme.bh)
+                              ),
+
+                            ),
                           ),
-                        ),
-                        child:DropdownButton<String>(
-                          value: _value,
-                          isExpanded: true,
-                          icon: Icon(Icons.arrow_drop_down),
-                          iconSize: 24,
-                          //elevation: 16,
-                          hint: Text("Option1"),
-                          style: TextStyle(color: Colors.black, fontSize: 18),
-                          onChanged: (String data) {
-                            setState(() {
-                              _value = data;
-                              serviceId=_serviceCategory.indexOf(data);
-                            });
-                          },
-                          items: _serviceCategory
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        ),
-                      ) ,) ),
+                        ) ,) ),
+                  Padding(padding: EdgeInsets.only(left: 22,top: 20),
+                    child: Text("Service Category",style: TextStyle(fontSize: 15,color: AppTheme.bhb),),),
+                  Padding(padding: EdgeInsets.only(left: 10,top: 5),
+                      child:Center(
+                        child:new Container(
+                          width: MediaQuery.of(context).size.width*9/10,
+                          height: MediaQuery.of(context).size.width*1.5/10,
+                          child:DropdownButton<String>(
+                            value: _value,
+                            isExpanded: true,
+                            icon: Icon(Icons.arrow_drop_down,size: 30,color: AppTheme.bh,),
+                            iconSize: 24,
+                            elevation: 16,
+                            hint: Text("Option1"),
+                            style: TextStyle(color: Colors.black, fontSize: 18),
+                            onChanged: (String data) {
+                              setState(() {
+                                _value = data;
+                                serviceId=_serviceCategory.indexOf(data);
+                              });
+                            },
+                            items: _serviceCategory
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                          ),
+                        ) ,) ),
 
 
                   Padding(padding: EdgeInsets.only(left: 22,top: 20),
-                    child: Text("Skills Required",style: TextStyle(fontSize: 20),),),
+                    child: Text("Skills Required",style: TextStyle(fontSize: 15,color: AppTheme.bhb),),),
                   Padding(padding: EdgeInsets.only(left: 10,top: 5),
                       child:Center(child:new Container(
                         width: MediaQuery.of(context).size.width*9/10,
                         decoration: new BoxDecoration(
                           shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(5),
                           border: new Border.all(
-                            color: AppTheme.bh,
+                            color: AppTheme.bhb,
                             width: 1.5,
                           ),
                         ),
@@ -337,6 +244,11 @@ class _PostTicketState extends State<PostTicket> {
                           },
                           onChanged: (data) {
                             tag=data.toString();
+                            setState(() {
+                              tag=data;
+                              skillTag=tag.join(',');
+                              print(skillTag);
+                            });
 
                           },
                           chipBuilder: (context, state, profile) {
@@ -360,109 +272,69 @@ class _PostTicketState extends State<PostTicket> {
                 ],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //crossAxisAlignment: CrossAxisAlignment.sp,
-              children: <Widget>[
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(padding: EdgeInsets.only(top: 20),
-                      child: Text("Type of working time",style: TextStyle(fontSize: 20),),),
-                    Padding(padding: EdgeInsets.only(left: 10,top: 5),
-                        child:Center(
-                          child:new Container(
-                            width: MediaQuery.of(context).size.width*2/5,
-                            decoration: new BoxDecoration(
-                              shape: BoxShape.rectangle,
+            Padding(padding: EdgeInsets.only(top: 20,left: 22),
+              child: Text("Type of working time",style: TextStyle(fontSize: 15,color: AppTheme.bhb),),),
+            Padding(padding: EdgeInsets.only(left: 22,top: 5,right: 80),
+                child:new Container(
+                  width: MediaQuery.of(context).size.width*2/5,
+                  //height: MediaQuery.of(context).size.width/5,
+                  decoration: new BoxDecoration(
+                    /*shape: BoxShape.rectangle,
                               border: new Border.all(
                                 color: AppTheme.bh,
                                 width: 1.5,
-                              ),
-                            ),
-                            child:DropdownButton<String>(
-                              value: _workinType,
-                              isExpanded: true,
-                              icon: Icon(Icons.arrow_drop_down),
-                              iconSize: 24,
-                              //elevation: 16,
-                              hint: Text("Option1"),
-                              style: TextStyle(color: Colors.black, fontSize: 18),
-                              onChanged: (String data) {
-                                setState(() {
-                                  _workinType = data;
-                                });
-                              },
-                              items: workingType
-                                  .map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                            ),
-                          ) ,) ),
-                  ],
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(padding: EdgeInsets.only(left: 22,top: 20),
-                      child: Text("Rate",style: TextStyle(fontSize: 20),),),
-                    Padding(padding: EdgeInsets.only(left: 10,top: 5),
-                        child:Center(
-                          child:new Container(
-                            width: MediaQuery.of(context).size.width/5,
-                            decoration: new BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              border: new Border.all(
-                                color: AppTheme.bh,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: new TextField(
-                              controller: costText,
-                              style: TextStyle(fontSize: 18),
-                              textAlign: TextAlign.left,
-                              decoration: new InputDecoration(
-                                hintText: '/\$',
-                                border: InputBorder.none,
-
-                              ),
-                            ),
-                          ) ,) ),
-                  ],
-                )
-              ],
-            ),
+                              ),*/
+                  ),
+                  child:DropdownButton<String>(
+                    value: _workinType,
+                    isExpanded: true,
+                    icon: Icon(Icons.arrow_drop_down,size: 30,color: AppTheme.bh,),
+                    iconSize: 24,
+                    //elevation: 16,
+                    hint: Text("Option1"),
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                    onChanged: (String data) {
+                      setState(() {
+                        _workinType = data;
+                      });
+                    },
+                    items: workingType
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                )  ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                 isLoading?Center(child: CircularProgressIndicator(),):_buildPostTicketbtn(),
+                _buildPostTicketbtn(),
+                _buildDraftbtn(),
                 _buildResetbtn(),
               ],
             )
           ],
         ),
       ),
+
     );
   }
 
   Widget _buildPostTicketbtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
-      width: MediaQuery.of(context).size.width*2/5,
+      width: MediaQuery.of(context).size.width*1.5/5,
       child: RaisedButton(
         elevation: 5.0,
-        onPressed:titleText.text==" "||desText.text==" "||costText.text==" "?null:(){
+        onPressed:titleText.text==" "||desText.text==" "?null:(){
           setState(() {
             isLoading=true;
           });
-
-            postTicketUser(serviceId,titleText.text, desText.text, costText.text, _workinType);
+          postTicketUser(serviceId, skillTag, titleText.text, desText.text, 1,
+              _workinType);
 
         },
        /* {
@@ -478,11 +350,11 @@ class _PostTicketState extends State<PostTicket> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        color: AppTheme.bh,
+        color: AppTheme.bhb,
         child: Text(
-          'Post Ticket Now',
+          'Post Ticket',
           style: TextStyle(
-            color: AppTheme.nearlyWhite,
+            color: AppTheme.white,
             letterSpacing: 1.5,
             fontSize: 13.0,
             fontWeight: FontWeight.bold,
@@ -506,11 +378,44 @@ class _PostTicketState extends State<PostTicket> {
         ),
         color: AppTheme.nearlyWhite,
         child: Text(
-          'Reset',
+          'Cancel',
           style: TextStyle(
             color: AppTheme.nearlyBlack,
             letterSpacing: 1.5,
-            fontSize: 13.0,
+            fontSize: 15.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildDraftbtn() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 25.0),
+      width: MediaQuery.of(context).size.width*1.5/5,
+      child: RaisedButton(
+        elevation: 5.0,
+        onPressed: titleText.text==" "||desText.text==" "?null:(){
+          setState(() {
+            isLoading=true;
+          });
+
+          //postTicketUser(serviceId,titleText.text, desText.text, costText.text, _workinType);
+          postTicketUser(serviceId, skillTag, titleText.text, desText.text,0 , _workinType);
+
+        },
+        padding: EdgeInsets.all(15.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        color: AppTheme.bh,
+        child: Text(
+          'Draft',
+          style: TextStyle(
+            color: AppTheme.white,
+            letterSpacing: 1.5,
+            fontSize: 15.0,
             fontWeight: FontWeight.bold,
             fontFamily: 'OpenSans',
           ),
